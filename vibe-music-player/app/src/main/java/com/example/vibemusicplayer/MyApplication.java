@@ -23,6 +23,9 @@ public class MyApplication extends Application {
     public String getAllSongsUrl = BASE_URL + "song/getAllSongs";
     public String getRecommendedSongsUrl = BASE_URL + "song/getRecommendedSongs";
 
+    // 歌曲音频流（代理 MinIO）
+    public String streamUrl = BASE_URL + "song/stream/";
+
     // 歌单接口
     public String getAllPlaylistsUrl = BASE_URL + "playlist/getAllPlaylists";
     public String getRecommendedPlaylistsUrl = BASE_URL + "playlist/getRecommendedPlaylists";

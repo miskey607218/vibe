@@ -100,11 +100,10 @@ public class SplashActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                // 1秒后启动主Activity
-                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
                 startActivity(intent);
-                finish(); // 确保启动屏Activity被销毁
+                finish();
             }
-        }, 1000); // 1000毫秒
+        }, 800);
     }
 }

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp"
+    android:background="#2196F3">
+
+    <ImageView
+        android:id="@+id/login_logo"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/nav_logo"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Vibe Music"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
+
+    <EditText
+        android:id="@+id/login_account"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="用户名或邮箱"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#88FFFFFF"
+        android:background="@drawable/login_edit_bg"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:inputType="text"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/login_password"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="密码"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#88FFFFFF"
+        android:background="@drawable/login_edit_bg"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:inputType="textPassword"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/login_button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="登  录"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:background="#FF4081"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/login_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FFCDD2"
+        android:textSize="14sp" />
+
+</LinearLayout>

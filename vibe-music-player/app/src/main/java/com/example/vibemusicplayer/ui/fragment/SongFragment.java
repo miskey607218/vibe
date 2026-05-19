@@ -24,10 +24,15 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.vibemusicplayer.MyApplication;
 import com.example.vibemusicplayer.R;
 import com.example.vibemusicplayer.ui.database.SongDatabaseHelper;
 import com.example.vibemusicplayer.ui.model.Song;
 import com.example.vibemusicplayer.ui.viewmodel.SongViewModel;
+
+import org.xutils.common.Callback;
+import org.xutils.http.RequestParams;
+import org.xutils.x;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -75,14 +80,20 @@ public class SongFragment extends Fragment {
         ImageView songImageView = view.findViewById(R.id.item_song_imageView);
 
         if (albumArt != null) {
-            // 使用 Glide 加载图片
-            Glide.with(view.getContext())
-                    .load(Uri.parse(albumArt))
-                    .apply(RequestOptions.bitmapTransform(new CircleCrop())) // 应用圆形裁剪
-                    .error(R.drawable.nav_logo) // 错误时的占位符
-                    .into(songImageView); // 将图片加载到 bannerImageView
+            if (song.isFromServer()) {
+                Glide.with(view.getContext())
+                        .load(albumArt)
+                        .apply(RequestOptions.bitmapTransform(new CircleCrop()))
+                        .error(R.drawable.nav_logo)
+                        .into(songImageView);
+            } else {
+                Glide.with(view.getContext())
+                        .load(Uri.parse(albumArt))
+                        .apply(RequestOptions.bitmapTransform(new CircleCrop()))
+                        .error(R.drawable.nav_logo)
+                        .into(songImageView);
+            }
         } else {
-            // 如果 logo 为 null，则使用默认的占位符图像
             songImageView.setImageResource(R.drawable.nav_logo);
         }
 
@@ -120,20 +131,36 @@ public class SongFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(SongViewModel.class);
 
-        // 获取本地音乐文件的 MediaPlayer 对象
-        mediaPlayer = mViewModel.getLocalMusicByNameAndArtist(requireContext(), name, artist);
-
-        if (mediaPlayer != null) {
-            Log.d("MediaPlayerInfo", "MediaPlayer 对象已获取：" + mediaPlayer);
-            seekBar.setMax(timeToMilliseconds(duration));
-            mediaPlayer.start();
-            flag = false;
-            if (thread == null || !thread.isAlive()) {
-                thread = new Thread(new SeekBarThread()); // 启动线程
-                thread.start();
+        Song currentSong = data.get(position);
+        if (currentSong.isFromServer() && currentSong.getAudioUrl() != null) {
+            // 服务端歌曲：异步准备后自动播放
+            mediaPlayer = mViewModel.getRemoteMusic(currentSong.getAudioUrl());
+            if (mediaPlayer != null) {
+                mediaPlayer.setOnPreparedListener(mp -> {
+                    seekBar.setMax(mp.getDuration());
+                    mp.start();
+                    flag = false;
+                    if (thread == null || !thread.isAlive()) {
+                        thread = new Thread(new SeekBarThread());
+                        thread.start();
+                    }
+                });
             }
         } else {
-            Log.d("MediaPlayerInfo", "未能获取到 MediaPlayer 对象");
+            // 本地歌曲
+            mediaPlayer = mViewModel.getLocalMusicByNameAndArtist(requireContext(), name, artist);
+            if (mediaPlayer != null) {
+                Log.d("MediaPlayerInfo", "MediaPlayer 对象已获取：" + mediaPlayer);
+                seekBar.setMax(timeToMilliseconds(duration));
+                mediaPlayer.start();
+                flag = false;
+                if (thread == null || !thread.isAlive()) {
+                    thread = new Thread(new SeekBarThread());
+                    thread.start();
+                }
+            } else {
+                Log.d("MediaPlayerInfo", "未能获取到 MediaPlayer 对象");
+            }
         }
 
         // 设置播放/暂停按钮的点击事件监听器
@@ -452,59 +479,97 @@ public class SongFragment extends Fragment {
         }
     }
 
+    private boolean isFavorited = false;
+
+    // 检查歌曲是否已收藏（服务端优先）
     @SuppressLint("Range")
     public boolean getSongByName(String name) {
+        Song currentSong = data.get(position);
+        MyApplication app = (MyApplication) requireActivity().getApplication();
+
+        // 服务端歌曲：通过 API 检查
+        if (currentSong.isFromServer() && app.isLoggedIn()) {
+            return isFavorited;
+        }
+        // 本地歌曲：查 SQLite
         SongDatabaseHelper dbHelper = new SongDatabaseHelper(getContext());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM favorite_song WHERE name = ?", new String[]{name});
-        Song song = null;
-        if (cursor.moveToFirst()) {
-            // 从数据库中获取歌曲信息
-            String artist = cursor.getString(cursor.getColumnIndex("artist"));
-            String album = cursor.getString(cursor.getColumnIndex("album"));
-            String duration = cursor.getString(cursor.getColumnIndex("duration"));
-            String uri = cursor.getString(cursor.getColumnIndex("uri"));
-            Uri albumArtUri = Uri.parse(uri);
-            song = new Song(name, artist, album, duration, albumArtUri != null ? albumArtUri.toString() : null);
-        }
+        boolean found = cursor.moveToFirst();
         cursor.close();
         db.close();
-        return song != null;
+        isFavorited = found;
+        return found;
     }
 
+    // 收藏歌曲（服务端优先）
     public void insertToFavorites(String name, String artist, String album, String duration, String albumArt) {
-        // 获取数据库实例
+        Song currentSong = data.get(position);
+        MyApplication app = (MyApplication) requireActivity().getApplication();
+
+        if (currentSong.isFromServer() && app.isLoggedIn()) {
+            String url = app.collectSongUrl + "?songId=" + currentSong.getSongId();
+            RequestParams params = new RequestParams(url);
+            params.addHeader("Authorization", app.getAuthToken());
+            x.http().post(params, new Callback.CommonCallback<String>() {
+                @Override public void onSuccess(String result) {
+                    isFavorited = true;
+                    Log.d("SongFragment", "服务器收藏成功");
+                }
+                @Override public void onError(Throwable ex, boolean isOnCallback) {
+                    Log.e("SongFragment", "收藏失败: " + ex.getMessage());
+                }
+                @Override public void onCancelled(CancelledException cex) {}
+                @Override public void onFinished() {}
+            });
+            return;
+        }
+
+        // 本地 SQLite
         SongDatabaseHelper dbHelper = new SongDatabaseHelper(getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        // 创建一个 ContentValues 对象来存储歌曲信息
         ContentValues values = new ContentValues();
         values.put("name", name);
         values.put("artist", artist);
         values.put("album", album);
         values.put("duration", duration);
         values.put("uri", albumArt);
-
-        // 将歌曲信息插入到数据库中
         long newRowId = db.insert("favorite_song", null, values);
-
-        // 检查插入是否成功
         if (newRowId != -1) {
+            isFavorited = true;
             Log.d("SongFragment", "歌曲已成功收藏");
-        } else {
-            Log.d("SongFragment", "收藏歌曲失败");
         }
-
         db.close();
     }
 
+    // 取消收藏（服务端优先）
     public void removeFromFavorites(String name) {
-        // 获取数据库实例
+        Song currentSong = data.get(position);
+        MyApplication app = (MyApplication) requireActivity().getApplication();
+
+        if (currentSong.isFromServer() && app.isLoggedIn()) {
+            String url = app.cancelCollectSongUrl + "?songId=" + currentSong.getSongId();
+            RequestParams params = new RequestParams(url);
+            params.addHeader("Authorization", app.getAuthToken());
+            params.addHeader("X-HTTP-Method-Override", "DELETE");
+            x.http().post(params, new Callback.CommonCallback<String>() {
+                @Override public void onSuccess(String result) {
+                    isFavorited = false;
+                    Log.d("SongFragment", "服务器取消收藏成功");
+                }
+                @Override public void onError(Throwable ex, boolean isOnCallback) {
+                    Log.e("SongFragment", "取消收藏失败: " + ex.getMessage());
+                }
+                @Override public void onCancelled(CancelledException cex) {}
+                @Override public void onFinished() {}
+            });
+            return;
+        }
+
         SongDatabaseHelper dbHelper = new SongDatabaseHelper(getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        // 删除歌曲
         db.delete("favorite_song", "name = ?", new String[]{name});
+        isFavorited = false;
         db.close();
     }
 
