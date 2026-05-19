@@ -79,4 +79,12 @@ public class FavoriteFragment extends Fragment {
             isLoading = false;
         });
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mViewModel != null) {
+            mViewModel.loadAllData(requireContext());
+        }
+    }
 }

@@ -508,9 +508,9 @@ public class SongFragment extends Fragment {
         MyApplication app = (MyApplication) requireActivity().getApplication();
 
         if (currentSong.isFromServer() && app.isLoggedIn()) {
-            String url = app.collectSongUrl + "?songId=" + currentSong.getSongId();
-            RequestParams params = new RequestParams(url);
+            RequestParams params = new RequestParams(app.collectSongUrl);
             params.addHeader("Authorization", app.getAuthToken());
+            params.addQueryStringParameter("songId", String.valueOf(currentSong.getSongId()));
             x.http().post(params, new Callback.CommonCallback<String>() {
                 @Override public void onSuccess(String result) {
                     isFavorited = true;
@@ -548,10 +548,9 @@ public class SongFragment extends Fragment {
         MyApplication app = (MyApplication) requireActivity().getApplication();
 
         if (currentSong.isFromServer() && app.isLoggedIn()) {
-            String url = app.cancelCollectSongUrl + "?songId=" + currentSong.getSongId();
-            RequestParams params = new RequestParams(url);
+            RequestParams params = new RequestParams(app.cancelCollectSongUrl);
             params.addHeader("Authorization", app.getAuthToken());
-            params.addHeader("X-HTTP-Method-Override", "DELETE");
+            params.addQueryStringParameter("songId", String.valueOf(currentSong.getSongId()));
             x.http().post(params, new Callback.CommonCallback<String>() {
                 @Override public void onSuccess(String result) {
                     isFavorited = false;

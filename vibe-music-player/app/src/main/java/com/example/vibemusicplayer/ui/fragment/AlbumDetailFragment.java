@@ -17,15 +17,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.vibemusicplayer.R;
 import com.example.vibemusicplayer.ui.adapter.AlbumDetailAdapter;
-import com.example.vibemusicplayer.ui.model.Song;
 import com.example.vibemusicplayer.ui.viewmodel.AlbumDetailViewModel;
-
-import java.util.List;
 
 public class AlbumDetailFragment extends Fragment {
 
     private AlbumDetailViewModel mViewModel;
     private RecyclerView recyclerView;
+    private String albumName, albumArt;
 
     public static AlbumDetailFragment newInstance() {
         return new AlbumDetailFragment();
@@ -36,35 +34,33 @@ public class AlbumDetailFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_album_detail, container, false);
 
-        String albumArt = getArguments().getString("logo");
+        albumArt = getArguments().getString("logo");
         ImageView bannerImageView = view.findViewById(R.id.banner);
 
-        if (albumArt != null) {
-            // 使用 Glide 加载图片
+        if (albumArt != null && !albumArt.isEmpty()) {
             Glide.with(view.getContext())
                     .load(albumArt)
-                    .error(R.drawable.nav_logo) // 错误时的占位符
-                    .into(bannerImageView); // 将图片加载到 bannerImageView
+                    .error(R.drawable.nav_logo)
+                    .into(bannerImageView);
         } else {
-            // 如果 logo 为 null，则使用默认的占位符图像
             bannerImageView.setImageResource(R.drawable.nav_logo);
         }
 
-        String albumName = getArguments().getString("album");
+        albumName = getArguments().getString("album");
         TextView txtTitle = view.findViewById(R.id.album_title);
         txtTitle.setText(albumName);
 
         recyclerView = view.findViewById(R.id.recyclerView_library);
         recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
         mViewModel = new ViewModelProvider(this).get(AlbumDetailViewModel.class);
-        setupRecyclerView(albumName, albumArt); // 初始化 RecyclerView
+        mViewModel.loadSongs(requireContext(), albumName);
+
+        mViewModel.songsLiveData.observe(getViewLifecycleOwner(), songs -> {
+            if (songs != null) {
+                recyclerView.setAdapter(new AlbumDetailAdapter(albumName, albumArt, songs));
+            }
+        });
 
         return view;
     }
-
-    private void setupRecyclerView(String albumName, String albumArt) {
-        List<Song> songs = mViewModel.getSongsByAlbumName(requireContext(), albumName);
-        recyclerView.setAdapter(new AlbumDetailAdapter(albumName, albumArt, songs));
-    }
-
 }

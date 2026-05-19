@@ -16,14 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.vibemusicplayer.R;
 import com.example.vibemusicplayer.ui.adapter.ArtistDetailAdapter;
 import com.example.vibemusicplayer.ui.viewmodel.ArtistDetailViewModel;
-import com.example.vibemusicplayer.ui.model.Song;
-
-import java.util.List;
 
 public class ArtistDetailFragment extends Fragment {
 
     private ArtistDetailViewModel mViewModel;
-
     private RecyclerView recyclerView;
 
     public static ArtistDetailFragment newInstance() {
@@ -42,14 +38,14 @@ public class ArtistDetailFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerView_library);
         recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
         mViewModel = new ViewModelProvider(this).get(ArtistDetailViewModel.class);
-        setupRecyclerView(artistName); // 初始化 RecyclerView
+        mViewModel.loadSongs(requireContext(), artistName);
+
+        mViewModel.songsLiveData.observe(getViewLifecycleOwner(), songs -> {
+            if (songs != null) {
+                recyclerView.setAdapter(new ArtistDetailAdapter(songs));
+            }
+        });
 
         return view;
     }
-
-    private void setupRecyclerView(String artistName) {
-        List<Song> songs = mViewModel.getSongsByArtistName(requireContext(), artistName);
-        recyclerView.setAdapter(new ArtistDetailAdapter(songs));
-    }
-
 }
