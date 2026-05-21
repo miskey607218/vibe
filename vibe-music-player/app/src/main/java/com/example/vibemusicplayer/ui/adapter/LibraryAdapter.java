@@ -91,15 +91,20 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.ViewHold
                     Bundle bundle = new Bundle();
                     ArrayList<Song> safeData = new ArrayList<>();
                     for (Song s : data) {
-                        String art = s.getAlbumArtUriString();
-                        Song safeSong = new Song(
-                            s.getName(),
-                            s.getArtist(),
-                            s.getAlbum(),
-                            s.getDuration(),
-                            art != null ? art : null
-                        );
-                        safeData.add(safeSong);
+                        if (s.isFromServer()) {
+                            Song safeSong = new Song(
+                                s.getSongId(), s.getName(), s.getArtist(), s.getAlbum(),
+                                s.getDuration(), s.getAlbumArtUriString(), s.getAudioUrl()
+                            );
+                            safeData.add(safeSong);
+                        } else {
+                            String art = s.getAlbumArtUriString();
+                            Song safeSong = new Song(
+                                s.getName(), s.getArtist(), s.getAlbum(), s.getDuration(),
+                                art != null ? art : null
+                            );
+                            safeData.add(safeSong);
+                        }
                     }
                     bundle.putSerializable("data", safeData);
                     bundle.putInt("position", position);

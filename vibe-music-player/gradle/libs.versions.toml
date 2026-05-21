@@ -19,6 +19,7 @@ legacySupportV4 = "1.0.0"
 pictureselector = "v3.0.9"
 viewpager2 = "1.0.0"
 xutilsVersion = "3.8.12"
+exoplayer = "2.19.1"
 
 [libraries]
 android-observablescrollview = { module = "com.github.ksoichiro:android-observablescrollview", version.ref = "androidObservablescrollview" }
@@ -40,6 +41,7 @@ legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", ver
 pictureselector = { module = "io.github.lucksiege:pictureselector", version.ref = "pictureselector" }
 viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 xutils-xutils = { module = "org.xutils:xutils", version.ref = "xutilsVersion" }
+exoplayer-core = { module = "com.google.android.exoplayer:exoplayer-core", version.ref = "exoplayer" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

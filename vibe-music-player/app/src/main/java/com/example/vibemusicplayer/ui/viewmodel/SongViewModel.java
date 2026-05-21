@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
 
@@ -48,18 +49,23 @@ public class SongViewModel extends ViewModel {
         }
     }
 
-    // 从服务器流式播放（MinIO URL）
-    public MediaPlayer getRemoteMusic(String audioUrl) {
+    // 从服务器流式播放
+    public MediaPlayer getRemoteMusic(Context context, String audioUrl) {
         if (audioUrl == null || audioUrl.isEmpty()) {
+            Log.e("MusicMetadataHelper", "audioUrl is null or empty");
             return null;
         }
+        Log.d("MusicMetadataHelper", "Preparing remote stream: " + audioUrl);
         MediaPlayer mediaPlayer = new MediaPlayer();
         try {
-            mediaPlayer.setDataSource(audioUrl);
-            mediaPlayer.prepareAsync();
+            Uri uri = Uri.parse(audioUrl);
+            mediaPlayer.setDataSource(context, uri);
             return mediaPlayer;
-        } catch (IOException e) {
-            Log.e("MusicMetadataHelper", "Failed to play remote MP3", e);
+        } catch (Exception e) {
+            Log.e("MusicMetadataHelper", "Failed to set data source: " + e.getMessage(), e);
+            if (mediaPlayer != null) {
+                mediaPlayer.release();
+            }
             return null;
         }
     }

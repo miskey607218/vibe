@@ -14,14 +14,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.vibemusicplayer.R;
 import com.example.vibemusicplayer.ui.adapter.SearchAdapter;
-import com.example.vibemusicplayer.ui.model.Song;
 import com.example.vibemusicplayer.ui.viewmodel.SearchViewModel;
 
-import java.util.List;
-
 public class SearchFragment extends Fragment {
-
-    private RecyclerView recyclerView;
 
     private SearchViewModel mViewModel;
 
@@ -34,22 +29,19 @@ public class SearchFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
 
-        recyclerView = view.findViewById(R.id.recyclerView_search);
+        RecyclerView recyclerView = view.findViewById(R.id.recyclerView_search);
         recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
         mViewModel = new ViewModelProvider(this).get(SearchViewModel.class);
+
         String keyword = getArguments().getString("keyword");
-        setupRecyclerView(keyword); // 初始化 RecyclerView
+        mViewModel.search(requireContext(), keyword);
 
-        return view; // 返回视图
-    }
+        mViewModel.songsLiveData.observe(getViewLifecycleOwner(), songs -> {
+            if (songs != null) {
+                recyclerView.setAdapter(new SearchAdapter(songs));
+            }
+        });
 
-    private void setupRecyclerView(String keyword) {
-        List<Song> songs = mViewModel.getMusicDataByKeyword(requireContext(), keyword);
-        recyclerView.setAdapter(new SearchAdapter(songs));
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
+        return view;
     }
 }
