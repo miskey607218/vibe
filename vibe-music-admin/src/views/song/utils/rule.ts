@@ -3,6 +3,18 @@ import type { FormRules } from "element-plus";
 
 /** 自定义表单规则校验 */
 export const formRules = reactive(<FormRules>{
+  artistId: [
+    {
+      validator: (rule, value, callback) => {
+        if (!value && (rule as any).required) {
+          callback(new Error("请选择歌手"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "change"
+    }
+  ],
   songName: [
     {
       validator: (rule, value, callback) => {

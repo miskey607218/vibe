@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/rec_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="为你推荐"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/rec_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="推荐歌曲"
+        android:textSize="14sp"
+        android:textColor="#666"
+        android:paddingLeft="8dp"
+        android:paddingBottom="4dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rec_songs"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/rec_playlist_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="推荐歌单列表"
+        android:textSize="14sp"
+        android:textColor="#666"
+        android:paddingLeft="8dp"
+        android:paddingTop="8dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rec_playlists"
+        android:layout_width="match_parent"
+        android:layout_height="100dp" />
+</LinearLayout>

@@ -30,7 +30,10 @@ public class AlbumDetailAdapter extends RecyclerView.Adapter<AlbumDetailAdapter.
     private final String albumName;
     private final String albumArt;
     private final List<Song> data;
-    private Uri albumArtUri;
+    private OnLongClickListener longClickListener;
+
+    public interface OnLongClickListener { void onLongClick(Song song, int position); }
+    public void setOnLongClickListener(OnLongClickListener l) { this.longClickListener = l; }
 
     public AlbumDetailAdapter(String albumName, String albumArt, List<Song> data) {
         this.albumName = albumName; // 传入数据源
@@ -85,17 +88,23 @@ public class AlbumDetailAdapter extends RecyclerView.Adapter<AlbumDetailAdapter.
             holder.album.setText(song.getAlbum());
             holder.time.setText(song.getDuration());
 
-            // 设置子项的点击事件
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Context context = v.getContext(); // 获取点击 View 的上下文
+                    Context context = v.getContext();
                     NavController navController = Navigation.findNavController((Activity) context, R.id.nav_host_fragment_content_main);
                     Bundle bundle = new Bundle();
                     bundle.putSerializable("data", new ArrayList<>(data));
                     bundle.putInt("position", position);
                     navController.navigate(R.id.nav_song, bundle);
                 }
+            });
+            holder.itemView.setOnLongClickListener(v -> {
+                if (longClickListener != null) {
+                    longClickListener.onLongClick(data.get(position), position);
+                    return true;
+                }
+                return false;
             });
         }
     }

@@ -32,14 +32,16 @@ public class FavoriteViewModel extends ViewModel {
         return favoriteLiveData;
     }
 
-    // 兼容旧接口：支持 Context 参数（优先从服务器加载，登录后才能使用）
+    // 兼容旧接口：支持 Context 参数
     public void loadAllData(Context context) {
-        MyApplication app = (MyApplication) context.getApplicationContext();
+        currentPage = 0;
+        allFavorites.clear();
+        hasMoreData = false;
 
+        MyApplication app = (MyApplication) context.getApplicationContext();
         if (app.isLoggedIn()) {
             loadFromServer(app);
         } else {
-            // 未登录时从本地 SQLite 加载
             loadFromLocal(context);
         }
     }
@@ -54,6 +56,7 @@ public class FavoriteViewModel extends ViewModel {
 
     // 从 Spring Boot 后端加载收藏
     private void loadFromServer(MyApplication app) {
+        if (isLoading) return;
         isLoading = true;
         currentPage = 0;
         allFavorites.clear();
@@ -88,12 +91,15 @@ public class FavoriteViewModel extends ViewModel {
                                 for (int i = 0; i < items.length(); i++) {
                                     JSONObject item = items.optJSONObject(i);
                                     if (item != null) {
+                                        String dur = item.optString("duration", "0");
                                         Song song = new Song(
+                                                item.optLong("songId", -1),
                                                 item.optString("songName", ""),
                                                 item.optString("artistName", ""),
                                                 item.optString("album", ""),
-                                                item.optString("duration", ""),
-                                                item.optString("coverUrl", null)
+                                                formatDuration(dur),
+                                                item.optString("coverUrl", null),
+                                                app.streamUrl + item.optLong("songId", -1)
                                         );
                                         allFavorites.add(song);
                                     }
@@ -174,5 +180,10 @@ public class FavoriteViewModel extends ViewModel {
 
     public boolean hasMoreData() {
         return hasMoreData;
+    }
+
+    private String formatDuration(String dur) {
+        try { double sec = Double.parseDouble(dur); long ms = (long)(sec * 1000); return String.format("%d:%02d", (ms/60000), (ms%60000)/1000); }
+        catch (NumberFormatException e) { return dur; }
     }
 }

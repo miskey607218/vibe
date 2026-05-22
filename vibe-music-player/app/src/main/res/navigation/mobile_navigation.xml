@@ -56,6 +56,11 @@
         android:label="@string/menu_album_detail"
         tools:layout="@layout/fragment_album_detail" />
     <fragment
+        android:id="@+id/nav_playlist_detail"
+        android:name="com.example.vibemusicplayer.ui.fragment.PlaylistDetailFragment"
+        android:label="歌单详情"
+        tools:layout="@layout/fragment_playlist_detail" />
+    <fragment
         android:id="@+id/nav_artist_detail"
         android:name="com.example.vibemusicplayer.ui.fragment.ArtistDetailFragment"
         android:label="@string/menu_artist_detail"

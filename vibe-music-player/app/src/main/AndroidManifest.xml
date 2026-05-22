@@ -29,6 +29,14 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ProfileActivity"
+            android:theme="@style/Theme.MusicPlayer.NoActionBar">
+        </activity>
+        <activity
+            android:name=".RegisterActivity"
+            android:theme="@style/Theme.MusicPlayer.NoActionBar">
+        </activity>
+        <activity
             android:name=".LoginActivity"
             android:theme="@style/Theme.MusicPlayer.NoActionBar">
         </activity>

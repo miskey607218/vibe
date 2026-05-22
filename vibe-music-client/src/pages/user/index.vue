@@ -4,7 +4,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { UserStore } from '@/stores/modules/user'
 import defaultAvatar from '@/assets/user.jpg'
-import { updateUserInfo, updateUserAvatar, deleteUser, getUserInfo } from '@/api/system'
+import { updateUserInfo, updateUserAvatar, deleteUser, getUserInfo, updateUserPassword } from '@/api/system'
 import 'vue-cropper/dist/index.css'
 import { VueCropper } from "vue-cropper";
 import { useRouter } from 'vue-router'
@@ -165,7 +165,66 @@ const handleSubmit = async () => {
   })
 }
 
-// 处理账号注销
+// 修改密码相关
+const passwordFormVisible = ref(false)
+const passwordFormRef = ref<FormInstance>()
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  repeatPassword: ''
+})
+const passwordLoading = ref(false)
+
+const passwordRules = reactive<FormRules>({
+  oldPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { pattern: /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z\W]{8,18}$/, message: '8-18位数字、字母、符号的两种组合', trigger: 'blur' }
+  ],
+  repeatPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, callback: any) => {
+        if (value !== passwordForm.newPassword) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      }, trigger: 'blur'
+    }
+  ]
+})
+
+const handlePasswordChange = async () => {
+  if (!passwordFormRef.value) return
+  await passwordFormRef.value.validate(async (valid) => {
+    if (valid) {
+      passwordLoading.value = true
+      try {
+        const res = await updateUserPassword(passwordForm)
+        if (res.code === 0) {
+          ElMessage.success('密码修改成功，请重新登录')
+          userStore.clearUserInfo()
+          passwordFormVisible.value = false
+          authVisible.value = true
+        } else {
+          ElMessage.error(res.message || '修改失败')
+        }
+      } catch (e: any) {
+        ElMessage.error(e.message || '修改失败')
+      } finally {
+        passwordLoading.value = false
+      }
+    }
+  })
+}
+
+const handlePasswordReset = () => {
+  passwordForm.oldPassword = ''
+  passwordForm.newPassword = ''
+  passwordForm.repeatPassword = ''
+  passwordFormVisible.value = true
+}
 const handleDelete = async () => {
   try {
     await ElMessageBox.confirm(
@@ -283,12 +342,35 @@ const handleDelete = async () => {
           <el-button type="primary" :loading="loading" @click="handleSubmit" class="submit-btn">
             更新信息
           </el-button>
-          <el-button type="danger" :loading="loading" @click="handleDelete" class="submit-btn">
-            注销账号
-          </el-button>
+          <div class="flex gap-2">
+            <el-button type="warning" @click="handlePasswordReset" class="submit-btn">
+              修改密码
+            </el-button>
+            <el-button type="danger" :loading="loading" @click="handleDelete" class="submit-btn">
+              注销账号
+            </el-button>
+          </div>
         </div>
       </el-form-item>
     </el-form>
+
+    <el-dialog v-model="passwordFormVisible" title="修改密码" width="400px" :close-on-click-modal="false">
+      <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="0">
+        <el-form-item prop="oldPassword">
+          <el-input v-model="passwordForm.oldPassword" type="password" placeholder="原密码" show-password />
+        </el-form-item>
+        <el-form-item prop="newPassword">
+          <el-input v-model="passwordForm.newPassword" type="password" placeholder="新密码" show-password />
+        </el-form-item>
+        <el-form-item prop="repeatPassword">
+          <el-input v-model="passwordForm.repeatPassword" type="password" placeholder="确认新密码" show-password />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="passwordFormVisible = false">取消</el-button>
+        <el-button type="primary" :loading="passwordLoading" @click="handlePasswordChange">确认修改</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 登录对话框 -->
     <AuthTabs v-model="authVisible" />

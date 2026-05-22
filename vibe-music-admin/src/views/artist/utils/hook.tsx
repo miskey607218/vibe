@@ -263,7 +263,8 @@ export function useArtist(tableRef: Ref) {
           gender: row?.gender ?? "",
           birth: row?.birth ?? "",
           area: row?.area ?? "",
-          introduction: row?.introduction ?? ""
+          introduction: row?.introduction ?? "",
+          avatarFile: null
         }
       },
       width: "46%",
@@ -276,30 +277,35 @@ export function useArtist(tableRef: Ref) {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
-          message(`您${title}了歌手为 ${curData.artistName} 的这条数据`, {
-            type: "success"
-          });
-          done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
+          message(`您${title}了歌手为 ${curData.artistName} 的这条数据`, { type: "success" });
+          done(); onSearch();
         }
         FormRef.validate(valid => {
           if (valid) {
-            // 表单规则校验通过
             if (title === "新增") {
               addArtist(curData).then(res => {
                 if (res.code === 0) {
-                  chores();
-                } else {
-                  message("新增歌手失败，" + res.message, { type: "error" });
-                }
+                  const data = res.data as any;
+                  const newId = data?.artistId || data;
+                  if (newId && curData.avatarFile) {
+                    const fd = new FormData();
+                    fd.append("avatar", curData.avatarFile as any);
+                    updateArtistAvatar(newId, fd).then(avatarRes => {
+                      if (avatarRes.code === 0) { chores(); }
+                      else { chores(); message("头像上传失败:" + avatarRes.message, { type: "warning" }); }
+                    }).catch(() => chores());
+                  } else { chores(); }
+                } else { message("新增歌手失败，" + res.message, { type: "error" }); }
               });
             } else {
               updateArtist(curData).then(res => {
                 if (res.code === 0) {
-                  chores();
-                } else {
-                  message("修改歌手失败，" + res.message, { type: "error" });
-                }
+                  if (curData.avatarFile) {
+                    const fd = new FormData();
+                    fd.append("avatar", curData.avatarFile as any);
+                    updateArtistAvatar(curData.artistId!, fd).finally(() => chores());
+                  } else { chores(); }
+                } else { message("修改歌手失败，" + res.message, { type: "error" }); }
               });
             }
           }

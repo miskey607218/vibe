@@ -1,5 +1,4 @@
 interface FormItemProps {
-  /** 用于判断是`新增`还是`修改` */
   title: string;
   artistId?: number;
   artistName: string;
@@ -7,6 +6,7 @@ interface FormItemProps {
   birth: Date;
   area: string;
   introduction: string;
+  avatarFile?: File | null;
 }
 interface FormProps {
   formInline: FormItemProps;

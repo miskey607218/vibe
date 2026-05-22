@@ -14,6 +14,7 @@ import {
   addSong,
   updateSong,
   updateSongCover,
+  updateSongAudio,
   deleteSong,
   deleteSongs
 } from "@/api/system";
@@ -295,11 +296,13 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
           title,
           artistId: form.artistId ?? 0,
           artistName: row?.artistName ?? "",
+          artistList: treeData.value ?? [],
           songId: row?.songId ?? 0,
           songName: row?.songName ?? "",
           album: row?.album ?? "",
           style: row?.style ?? [],
-          releaseTime: row?.releaseTime ?? ""
+          releaseTime: row?.releaseTime ?? "",
+          audioFile: null
         }
       },
       width: "46%",
@@ -312,37 +315,46 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
-          message(`您${title}了歌名为 ${curData.songName} 的这条数据`, {
-            type: "success"
-          });
-          done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
+          message(`您${title}了歌名为 ${curData.songName} 的这条数据`, { type: "success" });
+          done(); onSearch();
         }
         FormRef.validate(valid => {
           if (valid) {
-            console.log("curData", curData);
-            // 表单规则校验通过
             if (title === "新增") {
-              curData.style = Array.isArray(curData.style)
-                ? curData.style.join(",")
-                : "";
-              addSong(curData).then(res => {
-                if (res.code === 0) {
-                  chores();
-                } else {
-                  message("新增歌曲失败，" + res.message, { type: "error" });
-                }
+              if (!curData.artistId) { message("请选择歌手", { type: "error" }); return; }
+              if (!curData.audioFile) { message("请上传音频文件", { type: "error" }); return; }
+              const postData: any = {
+                artistId: curData.artistId,
+                songName: curData.songName,
+                album: curData.album,
+                style: Array.isArray(curData.style) ? curData.style.join(",") : "",
+                releaseTime: curData.releaseTime
+              };
+              addSong(postData).then(res => {
+                if (res.code === 0 && res.data) {
+                  const songId = (res.data as any).songId || (res.data as any);
+                  if (songId && curData.audioFile) {
+                    const fd = new FormData();
+                    fd.append("audio", curData.audioFile as any);
+                    updateSongAudio(songId, fd).then(audioRes => {
+                      if (audioRes.code === 0) { chores(); }
+                      else { message("音频上传失败:" + audioRes.message, { type: "error" }); }
+                    }).catch(() => message("音频上传异常", { type: "error" }));
+                  } else { chores(); }
+                } else { message("新增歌曲失败，" + res.message, { type: "error" }); }
               });
             } else {
-              curData.style = Array.isArray(curData.style)
-                ? curData.style.join(",")
-                : "";
-              updateSong(curData).then(res => {
-                if (res.code === 0) {
-                  chores();
-                } else {
-                  message("修改歌曲失败，" + res.message, { type: "error" });
-                }
+              const postData: any = {
+                songId: curData.songId,
+                artistId: row?.artistId ?? curData.artistId,
+                songName: curData.songName,
+                album: curData.album,
+                style: Array.isArray(curData.style) ? curData.style.join(",") : "",
+                releaseTime: curData.releaseTime
+              };
+              updateSong(postData).then(res => {
+                if (res.code === 0) { chores(); }
+                else { message("修改歌曲失败，" + res.message, { type: "error" }); }
               });
             }
           }

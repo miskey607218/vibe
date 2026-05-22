@@ -28,6 +28,10 @@ import java.util.List;
 public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.ViewHolder> {
 
     private List<Song> data;
+    private OnLongClickListener longClickListener;
+
+    public interface OnLongClickListener { void onLongClick(Song song); }
+    public void setLongClickListener(OnLongClickListener l) { this.longClickListener = l; }
 
     public LibraryAdapter(List<Song> data) {
         this.data = data;
@@ -82,34 +86,30 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.ViewHold
             holder.album.setText(song.getAlbum());
             holder.time.setText(song.getDuration());
 
-            // 设置子项的点击事件
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Context context = v.getContext(); // 获取点击 View 的上下文
+                    Context context = v.getContext();
                     NavController navController = Navigation.findNavController((Activity) context, R.id.nav_host_fragment_content_main);
                     Bundle bundle = new Bundle();
                     ArrayList<Song> safeData = new ArrayList<>();
                     for (Song s : data) {
                         if (s.isFromServer()) {
-                            Song safeSong = new Song(
-                                s.getSongId(), s.getName(), s.getArtist(), s.getAlbum(),
-                                s.getDuration(), s.getAlbumArtUriString(), s.getAudioUrl()
-                            );
-                            safeData.add(safeSong);
+                            safeData.add(new Song(s.getSongId(), s.getName(), s.getArtist(), s.getAlbum(),
+                                s.getDuration(), s.getAlbumArtUriString(), s.getAudioUrl()));
                         } else {
                             String art = s.getAlbumArtUriString();
-                            Song safeSong = new Song(
-                                s.getName(), s.getArtist(), s.getAlbum(), s.getDuration(),
-                                art != null ? art : null
-                            );
-                            safeData.add(safeSong);
+                            safeData.add(new Song(s.getName(), s.getArtist(), s.getAlbum(), s.getDuration(), art != null ? art : null));
                         }
                     }
                     bundle.putSerializable("data", safeData);
                     bundle.putInt("position", position);
                     navController.navigate(R.id.nav_song, bundle);
                 }
+            });
+            holder.itemView.setOnLongClickListener(v -> {
+                if (longClickListener != null) { longClickListener.onLongClick(data.get(position)); return true; }
+                return false;
             });
         }
     }

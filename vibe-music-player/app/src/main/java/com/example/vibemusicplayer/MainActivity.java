@@ -2,6 +2,7 @@ package com.example.vibemusicplayer;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -51,6 +52,12 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        // 个人中心入口（非 Navigation 节点，手动处理）
+        navigationView.getMenu().findItem(R.id.nav_profile).setOnMenuItemClickListener(item -> {
+            startActivity(new Intent(this, ProfileActivity.class));
+            return true;
+        });
     }
 
     @Override

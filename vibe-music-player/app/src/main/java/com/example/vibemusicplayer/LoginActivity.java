@@ -43,6 +43,9 @@ public class LoginActivity extends AppCompatActivity {
         passwordInput.setText("123456abc");
 
         loginButton.setOnClickListener(v -> performLogin());
+        findViewById(R.id.login_to_register).setOnClickListener(v -> {
+            startActivity(new Intent(this, RegisterActivity.class));
+        });
     }
 
     private void performLogin() {

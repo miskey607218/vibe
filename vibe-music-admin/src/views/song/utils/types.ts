@@ -1,13 +1,14 @@
 interface FormItemProps {
-  /** 用于判断是`新增`还是`修改` */
   title: string;
   artistId: number;
   artistName: string;
+  artistList: Array<{ label: string; value: number }>;
   songId: number;
   songName: string;
   album: string;
   style: Array<string>;
   releaseTime: Date;
+  audioFile: File | null;
 }
 interface FormProps {
   formInline: FormItemProps;

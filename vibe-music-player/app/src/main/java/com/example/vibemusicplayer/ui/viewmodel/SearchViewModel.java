@@ -30,13 +30,14 @@ public class SearchViewModel extends ViewModel {
     public void search(Context context, String keyword) {
         MyApplication app = (MyApplication) context.getApplicationContext();
         if (app.isLoggedIn()) {
-            searchFromServer(app, keyword);
+            searchSongsFromServer(app, keyword);
+            searchArtistsFromServer(app, keyword);
         } else {
             searchFromLocal(context, keyword);
         }
     }
 
-    private void searchFromServer(MyApplication app, String keyword) {
+    private void searchSongsFromServer(MyApplication app, String keyword) {
         RequestParams params = new RequestParams(app.getAllSongsUrl);
         params.setAsJsonContent(true);
         params.addHeader("Content-Type", "application/json");
@@ -90,6 +91,56 @@ public class SearchViewModel extends ViewModel {
                 new Handler(Looper.getMainLooper()).post(() -> songsLiveData.postValue(new ArrayList<>()));
             }
             @Override public void onCancelled(CancelledException cex) {}
+            @Override public void onFinished() {}
+        });
+    }
+
+    private void searchArtistsFromServer(MyApplication app, String keyword) {
+        RequestParams params = new RequestParams(app.BASE_URL + "artist/getAllArtists");
+        params.setAsJsonContent(true);
+        params.addHeader("Content-Type", "application/json");
+        params.addHeader("Authorization", app.getAuthToken());
+        try {
+            JSONObject body = new JSONObject();
+            body.put("pageNum", 1);
+            body.put("pageSize", 50);
+            body.put("artistName", keyword);
+            params.setBodyContent(body.toString());
+        } catch (Exception e) { e.printStackTrace(); }
+
+        x.http().post(params, new Callback.CommonCallback<String>() {
+            @Override public void onSuccess(String result) {
+                try {
+                    JSONObject json = new JSONObject(result);
+                    if (json.optInt("code") == 0) {
+                        JSONObject data = json.optJSONObject("data");
+                        if (data != null) {
+                            JSONArray items = data.optJSONArray("items");
+                            if (items != null && items.length() > 0) {
+                                // 将歌手搜索结果追加为带有 artist 标记的歌曲
+                                List<Song> songs = new ArrayList<>();
+                                for (int i = 0; i < items.length(); i++) {
+                                    JSONObject item = items.optJSONObject(i);
+                                    if (item != null) {
+                                        String name = "歌手: " + item.optString("artistName", "");
+                                        Song s = new Song(name, "", "", "", item.optString("avatar", ""));
+                                        s.setSongId(-item.optLong("artistId", 0));
+                                        s.setFromServer(true);
+                                        songs.add(s);
+                                    }
+                                }
+                                List<Song> current = songsLiveData.getValue();
+                                if (current != null) {
+                                    songs.addAll(0, current);
+                                }
+                                new Handler(Looper.getMainLooper()).post(() -> songsLiveData.postValue(songs));
+                            }
+                        }
+                    }
+                } catch (Exception e) { e.printStackTrace(); }
+            }
+            @Override public void onError(Throwable ex, boolean b) {}
+            @Override public void onCancelled(CancelledException e) {}
             @Override public void onFinished() {}
         });
     }

@@ -48,9 +48,14 @@ export const register = (data: object) => {
   return http<Result>('post', '/user/register', { data })
 }
 
-/** 重置密码 */
+/** 重置密码（忘记密码） */
 export const resetPassword = (data: object) => {
   return http<Result>('patch', '/user/resetUserPassword', { data })
+}
+
+/** 修改密码（已登录） */
+export const updateUserPassword = (data: object) => {
+  return http<Result>('patch', '/user/updateUserPassword', { data })
 }
 
 /** 获取用户信息 */
@@ -202,4 +207,19 @@ export const removeSongFromPlaylist = (playlistId: number, songId: number) => {
   return http<Result>('delete', '/playlist/removeSong', {
     params: { playlistId, songId },
   })
+}
+
+/** 创建歌单 */
+export const createPlaylist = (data: object) => {
+  return http<Result>('post', '/admin/addPlaylist', { data })
+}
+
+/** 编辑歌单 */
+export const updatePlaylistInfo = (data: object) => {
+  return http<Result>('post', '/admin/updatePlaylist', { data })
+}
+
+/** 删除歌单 */
+export const deletePlaylist = (id: number) => {
+  return http<Result>('post', `/admin/deletePlaylist/${id}`)
 }

@@ -32,8 +32,9 @@ public class HomeFragment extends Fragment {
         tabLayout = view.findViewById(R.id.sliding_tabs);
 
         // 添加标题
+        titles.add("推荐");
         titles.add("曲库");
-        titles.add("专辑");
+        titles.add("歌单");
         titles.add("歌手");
         titles.add("喜欢");
 

@@ -8,6 +8,8 @@ import com.example.vibemusicplayer.ui.fragment.AlbumFragment;
 import com.example.vibemusicplayer.ui.fragment.ArtistFragment;
 import com.example.vibemusicplayer.ui.fragment.FavoriteFragment;
 import com.example.vibemusicplayer.ui.fragment.LibraryFragment;
+import com.example.vibemusicplayer.ui.fragment.PlaylistFragment;
+import com.example.vibemusicplayer.ui.fragment.RecommendFragment;
 
 
 public class HomeAdapter extends FragmentStateAdapter {
@@ -21,13 +23,15 @@ public class HomeAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         switch (position) {
             case 0:
-                return new LibraryFragment(); // 返回曲库Fragment
+                return new RecommendFragment();
             case 1:
-                return new AlbumFragment(); // 返回专辑Fragment
+                return new LibraryFragment();
             case 2:
-                return new ArtistFragment(); // 返回歌手Fragment
+                return new PlaylistFragment();
             case 3:
-                return new FavoriteFragment(); // 返回喜欢Fragment
+                return new ArtistFragment();
+            case 4:
+                return new FavoriteFragment();
             default:
                 throw new IllegalArgumentException("Invalid position: " + position);
         }
@@ -35,6 +39,6 @@ public class HomeAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 4; // 四个选项卡
+        return 5;
     }
 }

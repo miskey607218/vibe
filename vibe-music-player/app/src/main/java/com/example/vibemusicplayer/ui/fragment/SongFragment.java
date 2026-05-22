@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,6 +57,8 @@ public class SongFragment extends Fragment {
     private SeekBar seekBar;
     private ImageView modeToggle, playLast, playToggle, playNext, favoriteToggle;
     private Thread thread;
+    private Handler seekHandler = new Handler(Looper.getMainLooper());
+    private Runnable seekRunnable;
     private int time;
     private boolean flag = false;
     private ArrayList<Song> data;
@@ -134,17 +138,26 @@ public class SongFragment extends Fragment {
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
-                if (fromUser) { seekTo(progress); playToggle.setImageResource(R.drawable.ic_pause); flag = false; startSeekThread(); }
+                if (fromUser) { seekTo(progress); time = progress; }
                 textProgress.setText(millisecondsToString(progress));
                 if (isPlayerReady()) textDuration.setText(millisecondsToString(Math.max(0, getDuration() - progress)));
             }
-            @Override public void onStartTrackingTouch(SeekBar bar) { if (isPlaying()) pause(); }
-            @Override public void onStopTrackingTouch(SeekBar bar) { resume(); }
+            @Override public void onStartTrackingTouch(SeekBar bar) { if (isPlaying()) { time = getCurrentPosition(); pause(); } }
+            @Override public void onStopTrackingTouch(SeekBar bar) {
+                if (exoPlayer != null) { exoPlayer.play(); }
+                if (localMediaPlayer != null) { localMediaPlayer.start(); }
+                playToggle.setImageResource(R.drawable.ic_pause);
+                flag = false; startSeekThread();
+            }
         });
     }
 
     private void startPlayback() {
         release();
+        // 重置进度条到起点
+        seekBar.setProgress(0);
+        textProgress.setText("0:00");
+        time = 0;
         Song s = data.get(position);
         name = s.getName(); artist = s.getArtist(); album = s.getAlbum(); duration = s.getDuration(); albumArt = s.getAlbumArtUriString();
 
@@ -195,6 +208,9 @@ public class SongFragment extends Fragment {
     private void playSongAt(int pos) {
         position = pos;
         release();
+        seekBar.setProgress(0);
+        textProgress.setText("0:00");
+        time = 0;
         Song s = data.get(pos);
         name = s.getName(); artist = s.getArtist(); album = s.getAlbum(); duration = s.getDuration(); albumArt = s.getAlbumArtUriString();
         textName.setText(name); textArtist.setText(artist); textDuration.setText(duration);
@@ -261,6 +277,7 @@ public class SongFragment extends Fragment {
     private void stop() { if (exoPlayer != null) { exoPlayer.stop(); exoPlayer.release(); exoPlayer = null; } if (localMediaPlayer != null) { localMediaPlayer.stop(); localMediaPlayer.release(); localMediaPlayer = null; } }
     private void release() {
         flag = true;
+        if (seekRunnable != null) seekHandler.removeCallbacks(seekRunnable);
         if (exoPlayer != null) { exoPlayer.stop(); exoPlayer.release(); exoPlayer = null; }
         if (localMediaPlayer != null) { localMediaPlayer.stop(); localMediaPlayer.release(); localMediaPlayer = null; }
     }
@@ -269,18 +286,21 @@ public class SongFragment extends Fragment {
     @Override public void onDestroy() { super.onDestroy(); }
 
     private void startSeekThread() {
-        if (thread == null || !thread.isAlive()) {
-            thread = new Thread(() -> {
-                while (!flag) {
-                    try {
-                        int pos = getCurrentPosition();
-                        requireActivity().runOnUiThread(() -> { seekBar.setProgress(pos); textProgress.setText(millisecondsToString(pos)); });
-                    } catch (Exception e) { break; }
-                    try { Thread.sleep(100); } catch (InterruptedException e) { break; }
-                }
-            });
-            thread.start();
-        }
+        flag = false;
+        if (seekRunnable != null) seekHandler.removeCallbacks(seekRunnable);
+        seekRunnable = new Runnable() {
+            @Override public void run() {
+                if (flag) return;
+                int pos = 0;
+                if (exoPlayer != null) pos = (int) exoPlayer.getCurrentPosition();
+                else if (localMediaPlayer != null) pos = localMediaPlayer.getCurrentPosition();
+                seekBar.setProgress(pos);
+                textProgress.setText(millisecondsToString(pos));
+                if (pos > 0) textDuration.setText(millisecondsToString(Math.max(0, getDuration() - pos)));
+                seekHandler.postDelayed(this, 1000);
+            }
+        };
+        seekHandler.post(seekRunnable);
     }
 
     private int timeToMilliseconds(String t) { String[] p = t.split(":"); return (Integer.parseInt(p[0]) * 60 + Integer.parseInt(p.length > 1 ? p[1] : "0")) * 1000; }
