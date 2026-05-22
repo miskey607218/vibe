@@ -6,7 +6,7 @@ import org.xutils.x;
 
 public class MyApplication extends Application {
     // Spring Boot 后端地址（与PC端共享数据库）
-    public String BASE_URL = "http://192.168.1.114:8080/";
+    public String BASE_URL = "http://119.28.14.201:8080/";
 
     // 认证接口
     public String loginUrl = BASE_URL + "auth/login";

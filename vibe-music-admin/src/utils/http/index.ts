@@ -16,7 +16,7 @@ import { useUserStoreHook } from "@/store/modules/user";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 const defaultConfig: AxiosRequestConfig = {
-  baseURL: "http://localhost:8080", // 指向后端
+  baseURL: "http://119.28.14.201:8080", // 指向后端
   // 请求超时时间
   timeout: 10000,
   headers: {
