@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'static/js/[name]-[hash].js',
           entryFileNames: 'static/js/[name]-[hash].js',
           assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
+          sanitizeFileName: name => name.replace(/@/g, ''),
           // 静态资源分拆打包
           manualChunks(id) {
             if (id.includes('node_modules')) {

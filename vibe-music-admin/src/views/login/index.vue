@@ -15,8 +15,8 @@ import { useDataThemeChange } from "@/layout/hooks/useDataThemeChange";
 import { addPathMatch, getTopMenu } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 
-import dayIcon from "@/assets/svg/day.svg?component";
-import darkIcon from "@/assets/svg/dark.svg?component";
+import Sun from "@iconify-icons/ep/sunny";
+import Moon from "@iconify-icons/ep/moon";
 import Lock from "@iconify-icons/ri/lock-fill";
 import User from "@iconify-icons/ri/user-3-fill";
 
@@ -93,8 +93,8 @@ onBeforeUnmount(() => {
       <el-switch
         v-model="dataTheme"
         inline-prompt
-        :active-icon="dayIcon"
-        :inactive-icon="darkIcon"
+        :active-icon="useRenderIcon(Sun)"
+        :inactive-icon="useRenderIcon(Moon)"
         @change="dataThemeChange"
       />
     </div>
@@ -104,7 +104,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="login-box">
         <div class="login-form">
-          <img src="../../assets/login/avatar.svg" class="avatar" />
+          <img :src="avatar" class="avatar" />
           <Motion>
             <h2 class="outline-none">{{ title }}</h2>
           </Motion>
