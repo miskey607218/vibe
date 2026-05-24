@@ -302,6 +302,7 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
           album: row?.album ?? "",
           style: row?.style ?? [],
           releaseTime: row?.releaseTime ?? "",
+          duration: row?.duration ?? "",
           audioFile: null
         }
       },
@@ -328,6 +329,7 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
                 songName: curData.songName,
                 album: curData.album,
                 style: Array.isArray(curData.style) ? curData.style.join(",") : "",
+                duration: curData.duration || "",
                 releaseTime: curData.releaseTime
               };
               addSong(postData).then(res => {
@@ -350,6 +352,7 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
                 songName: curData.songName,
                 album: curData.album,
                 style: Array.isArray(curData.style) ? curData.style.join(",") : "",
+                duration: curData.duration || "",
                 releaseTime: curData.releaseTime
               };
               updateSong(postData).then(res => {

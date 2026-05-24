@@ -211,15 +211,15 @@ export const removeSongFromPlaylist = (playlistId: number, songId: number) => {
 
 /** 创建歌单 */
 export const createPlaylist = (data: object) => {
-  return http<Result>('post', '/admin/addPlaylist', { data })
+  return http<Result>('post', '/playlist/addPlaylist', { data })
 }
 
 /** 编辑歌单 */
 export const updatePlaylistInfo = (data: object) => {
-  return http<Result>('post', '/admin/updatePlaylist', { data })
+  return http<Result>('post', '/playlist/updatePlaylist', { data })
 }
 
 /** 删除歌单 */
 export const deletePlaylist = (id: number) => {
-  return http<Result>('post', `/admin/deletePlaylist/${id}`)
+  return http<Result>('post', `/playlist/deletePlaylist/${id}`)
 }

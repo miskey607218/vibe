@@ -1,12 +1,16 @@
 package com.example.vibemusicplayer;
 
 import android.app.Application;
+import android.content.SharedPreferences;
 
 import org.xutils.x;
 
 public class MyApplication extends Application {
     // Spring Boot 后端地址（与PC端共享数据库）
     public String BASE_URL = "http://119.28.14.201:8080/";
+
+    private static final String PREFS_NAME = "vibe_prefs";
+    private static final String KEY_TOKEN = "auth_token";
 
     // 认证接口
     public String loginUrl = BASE_URL + "auth/login";
@@ -42,10 +46,10 @@ public class MyApplication extends Application {
     public String cancelCollectPlaylistUrl = BASE_URL + "favorite/cancelCollectPlaylist";
     public String getFavoritePlaylistsUrl = BASE_URL + "favorite/getFavoritePlaylists";
 
-    // 歌单管理接口（需管理员权限，走 /admin 路径）
-    public String createPlaylistUrl = BASE_URL + "admin/addPlaylist";
-    public String updatePlaylistUrl = BASE_URL + "admin/updatePlaylist";
-    public String deletePlaylistUrl = BASE_URL + "admin/deletePlaylist/";
+    // 歌单管理接口
+    public String createPlaylistUrl = BASE_URL + "playlist/addPlaylist";
+    public String updatePlaylistUrl = BASE_URL + "playlist/updatePlaylist";
+    public String deletePlaylistUrl = BASE_URL + "playlist/deletePlaylist/";
 
     // 轮播图
     public String getBannerUrl = BASE_URL + "banner/getBannerList";
@@ -57,6 +61,9 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         x.Ext.init(this);
+        // 从 SharedPreferences 恢复 token
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        authToken = prefs.getString(KEY_TOKEN, null);
     }
 
     public String getAuthToken() {
@@ -65,6 +72,9 @@ public class MyApplication extends Application {
 
     public void setAuthToken(String token) {
         this.authToken = token;
+        // 持久化到 SharedPreferences
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            .edit().putString(KEY_TOKEN, token).apply();
     }
 
     public boolean isLoggedIn() {
@@ -73,5 +83,7 @@ public class MyApplication extends Application {
 
     public void logout() {
         this.authToken = null;
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            .edit().remove(KEY_TOKEN).apply();
     }
 }

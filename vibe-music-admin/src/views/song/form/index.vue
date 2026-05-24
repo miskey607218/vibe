@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<FormProps>(), {
     album: "",
     style: [],
     releaseTime: null,
+    duration: "",
     audioFile: null
   })
 });
@@ -30,6 +31,7 @@ const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
 const artistOptions = ref<Array<{ label: string; value: number }>>([]);
 const audioFileName = ref("");
+const audioDuration = ref("");
 
 watch(() => props.formInline, (val) => {
   newFormInline.value = val;
@@ -50,11 +52,24 @@ if (props.formInline.title === "新增") {
   fetchArtists();
 }
 
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 function handleAudioChange(event: Event) {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files.length > 0) {
     newFormInline.value.audioFile = input.files[0] as any;
     audioFileName.value = input.files[0].name;
+    const audio = new Audio();
+    audio.src = URL.createObjectURL(input.files[0]);
+    audio.addEventListener('loadedmetadata', () => {
+      newFormInline.value.duration = String(Math.round(audio.duration));
+      audioDuration.value = formatDuration(audio.duration);
+      URL.revokeObjectURL(audio.src);
+    });
   }
 }
 
@@ -123,6 +138,7 @@ defineExpose({ getRef });
           <input type="file" accept="audio/*" @change="handleAudioChange" style="display:none" ref="audioInput" />
           <el-button @click="($refs.audioInput as HTMLInputElement).click()">选择音频文件</el-button>
           <span v-if="audioFileName" class="ml-2 text-sm text-gray-500">{{ audioFileName }}</span>
+          <span v-if="audioDuration" class="ml-2 text-sm text-primary">时长: {{ audioDuration }}</span>
         </el-form-item>
       </re-col>
     </el-row>

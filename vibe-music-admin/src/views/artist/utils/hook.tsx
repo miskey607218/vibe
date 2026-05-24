@@ -263,8 +263,7 @@ export function useArtist(tableRef: Ref) {
           gender: row?.gender ?? "",
           birth: row?.birth ?? "",
           area: row?.area ?? "",
-          introduction: row?.introduction ?? "",
-          avatarFile: null
+          introduction: row?.introduction ?? ""
         }
       },
       width: "46%",
@@ -284,28 +283,13 @@ export function useArtist(tableRef: Ref) {
           if (valid) {
             if (title === "新增") {
               addArtist(curData).then(res => {
-                if (res.code === 0) {
-                  const data = res.data as any;
-                  const newId = data?.artistId || data;
-                  if (newId && curData.avatarFile) {
-                    const fd = new FormData();
-                    fd.append("avatar", curData.avatarFile as any);
-                    updateArtistAvatar(newId, fd).then(avatarRes => {
-                      if (avatarRes.code === 0) { chores(); }
-                      else { chores(); message("头像上传失败:" + avatarRes.message, { type: "warning" }); }
-                    }).catch(() => chores());
-                  } else { chores(); }
-                } else { message("新增歌手失败，" + res.message, { type: "error" }); }
+                if (res.code === 0) { chores(); }
+                else { message("新增歌手失败，" + res.message, { type: "error" }); }
               });
             } else {
               updateArtist(curData).then(res => {
-                if (res.code === 0) {
-                  if (curData.avatarFile) {
-                    const fd = new FormData();
-                    fd.append("avatar", curData.avatarFile as any);
-                    updateArtistAvatar(curData.artistId!, fd).finally(() => chores());
-                  } else { chores(); }
-                } else { message("修改歌手失败，" + res.message, { type: "error" }); }
+                if (res.code === 0) { chores(); }
+                else { message("修改歌手失败，" + res.message, { type: "error" }); }
               });
             }
           }

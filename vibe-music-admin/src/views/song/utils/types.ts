@@ -8,6 +8,7 @@ interface FormItemProps {
   album: string;
   style: Array<string>;
   releaseTime: Date;
+  duration: string;
   audioFile: File | null;
 }
 interface FormProps {

@@ -25,19 +25,10 @@ const genderOptions = [
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
-const avatarFileName = ref("");
 
 watch(() => props.formInline, (val) => {
   newFormInline.value = val;
 }, { immediate: true, deep: true });
-
-function handleAvatarChange(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (input.files && input.files.length > 0) {
-    newFormInline.value.avatarFile = input.files[0] as any;
-    avatarFileName.value = input.files[0].name;
-  }
-}
 
 function getRef() {
   return ruleFormRef.value;
@@ -78,14 +69,6 @@ defineExpose({ getRef });
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="国籍">
           <el-input v-model="newFormInline.area" clearable placeholder="请输入国籍" />
-        </el-form-item>
-      </re-col>
-
-      <re-col :value="24" :xs="24" :sm="24">
-        <el-form-item label="头像">
-          <input type="file" accept="image/*" @change="handleAvatarChange" style="display:none" ref="avatarInput" />
-          <el-button @click="($refs.avatarInput as HTMLInputElement).click()">选择头像</el-button>
-          <span v-if="avatarFileName" class="ml-2 text-sm text-gray-500">{{ avatarFileName }}</span>
         </el-form-item>
       </re-col>
 
